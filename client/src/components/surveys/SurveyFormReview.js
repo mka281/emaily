@@ -21,7 +21,7 @@ const SurveyFormReview = ({ onCancel, formValues }) => {
       {reviewFields}
       <button
         className="yellow darken-3 btn-flat"
-        onCancel={onCancel}
+        onClick={onCancel}
       >
         Back
       </button>
