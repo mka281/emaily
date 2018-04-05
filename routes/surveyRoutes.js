@@ -15,20 +15,21 @@ module.exports = app => {
   });
 
   app.post('/api/surveys/webhooks', (req, res) => {
-    const events = _.map(req.body, ({ email, url}) => {
-      const pathname = new URL(url).pathname;
-      const p = new Path('/api/surveys/:surveyId/:choice');
-      const match = p.test(pathname);
-      if (match) {
-        return { email, surveyId: match.surveyId, choice: match.choice };
-      }
-    });
+    const p = new Path('/api/surveys/:surveyId/:choice');
 
-    // remove falsy and repetitive elements
-    const compactEvents = _.compact(events);
-    const uniqueEvents = _.uniqBy(compactEvents, 'email', 'surveyId');
+    const events = _.chain(req.body)
+      .map(({ email, url}) => {
+        const match = p.test(new URL(url).pathname);
+        if (match) {
+          return { email, surveyId: match.surveyId, choice: match.choice };
+        }
+      })
+      // remove falsy and repetitive elements
+      .compact()
+      .uniqBy('email', 'surveyId')
+      .value()
 
-    console.log(uniqueEvents);
+    console.log(events);
 
     res.send({})
   });
