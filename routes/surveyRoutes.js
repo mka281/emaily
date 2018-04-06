@@ -10,7 +10,7 @@ const surveyTemplate = require('../services/emailTemplates/surveyTemplate');
 const Survey = mongoose.model('surveys');
 
 module.exports = app => {
-  app.get('/api/surveys/thanks', (req, res) => {
+  app.get('/api/surveys/:surveyId/:choice', (req, res) => {
     res.send("Thanks for voting!");
   });
 
@@ -27,7 +27,21 @@ module.exports = app => {
       // remove falsy and repetitive elements
       .compact()
       .uniqBy('email', 'surveyId')
-      .value()
+      .each(({ surveyId, email, choice }) => {
+        Survey.updateOne(
+          {
+            _id: surveyId,
+            recipients: {
+              $elemMatch: { email: email, responded: false }
+            }
+          },
+          {
+            $inc: { [choice]: 1 },
+            $set: { 'recipients.$.responded': true}
+          }
+        ).exec();
+      })
+      .value();
 
     console.log(events);
 
